@@ -28,11 +28,11 @@ then
 else
 	echo "No PID file was found";
 	possible_pid=`ps aux | grep -v grep | grep ifid | awk '{print $2}'`;
-	if [ $possible_pid -ne 0 ]
+	if [[ $possible_pid -ne "" ]]
 	then
 		echo -n "Found service, attempting to kill..................";
 		kill $possible_pid;
-		if [$? == 0 ]
+		if [ $? == 0 ]
 		then
 			echo "success";
 		else
@@ -42,3 +42,11 @@ else
 		echo "No running service was found";
 	fi
 fi
+
+if lsmod | grep ifids &> /dev/null
+then
+	echo -n "Removing ifids_module........";
+	rmmod ifids_module;
+	echo "done";
+fi
+

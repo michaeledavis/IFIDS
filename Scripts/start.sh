@@ -19,14 +19,14 @@ fi
 
 if [ -a $EXECUTIBLE ]
 then
-	echo -n "Starting IFIDS Daemon..........";
-	$EXECUTIBLE &> /dev/null;
+	echo "Starting IFIDS Daemon:";
+	$EXECUTIBLE;
 	#$EXECUTIBLE;
 	if [ $? == 0 ]
 	then
-		echo "done";
+		echo "Started Daemon Successfully";
 	else
-		echo "fail";
+		echo "Error Starting Daemon";
 	fi
 else
 	echo "No IFIDS Daemon found.  Is it installed?";
