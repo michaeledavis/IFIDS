@@ -3,6 +3,7 @@
 #include <syslog.h>
 #include <unistd.h> // Needed for STD[IN|OUT|ERR]_FILENO
 #include <sys/stat.h>
+#include <inttypes.h>
 
 int main(void)
 {
@@ -21,6 +22,9 @@ int main(void)
 	}
 	if (pid > 0)
 	{
+		logFile = fopen("/var/log/ifids/ifids_daemon.pid","w");
+		fprintf(logFile, "%jd",(intmax_t)pid);
+		fclose(logFile);
 		printf("Stopping parent process...\n");
 		exit(EXIT_SUCCESS);
 	}
