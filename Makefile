@@ -12,7 +12,7 @@ install:
 	@echo "IFIDS Installed."
 uninstall:
 	@echo "Uninstalling IFIDS Components"
-	@./Scripts/stop.sh &> /dev/null
+	@./Scripts/stop.sh > /dev/null
 	@rm -rf /usr/lib/ifids
 	@rm -rf /var/log/ifids
 	@echo "Uninstall complete"

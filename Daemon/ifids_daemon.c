@@ -133,9 +133,9 @@ int main(void)
 void writeLog(char * str)
 {
 #ifdef NO_DAEMON
-	printf(str);
+	puts(str);
 #else
 	if (logFile != NULL)
-		fprintf(logFile,str);
+		fputs(str,logFile);
 #endif
 }
