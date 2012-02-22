@@ -23,7 +23,8 @@ then
 			echo "fail";
 		fi
 	else
-		echo "\nPID File was found, but no service was running";
+		rm $LOG_LOCATION"/ifids_daemon.pid"
+		echo -e "\n PID File was found, but no service was running";
 	fi
 else
 	echo "No PID file was found";
@@ -45,7 +46,7 @@ fi
 
 if lsmod | grep ifids &> /dev/null
 then
-	echo -n "Removing ifids_module........";
+	echo -n "Removing ifids_module.....................";
 	rmmod ifids_module;
 	echo "done";
 fi

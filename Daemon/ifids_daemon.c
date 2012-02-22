@@ -1,3 +1,5 @@
+// #define NO_DAEMON
+
 #define MOD_NAME "ifids_module"
 
 #include <stdio.h>
@@ -7,6 +9,12 @@
 #include <unistd.h> // Needed for STD[IN|OUT|ERR]_FILENO
 #include <sys/stat.h> // Needed for umask
 #include <inttypes.h> // Needed for (intmax_t), which is used in one place...
+
+FILE *logFile;
+
+
+// This should be used to write logs.  If NO_DAEMON is defined, it prints to the console; otherwise to the log file
+void writeLog(char*);
 
 int main(void)
 {
@@ -52,10 +60,13 @@ int main(void)
 	else
 	{
 		printf("              Module is already loaded\n");
+		writeLog("testing\n");
 	}
+	writeLog("test\n");
 	// End check to see if module is already loaded.  It is now loaded.
-	pid_t pid, sid;
-	FILE *logFile; // Declare log file
+	pid_t sid;
+#ifndef NO_DAEMON
+	pid_t pid;
 	pid = fork(); // Fork child process
 	if (pid < 0) // if fork didn't work
 	{
@@ -71,6 +82,7 @@ int main(void)
 		printf("Stopping parent process...\n");
 		exit(EXIT_SUCCESS);
 	}
+#endif
 	// Change permissions
 	umask(0);
 	// Open syslog in case we have trouble with our own log file
@@ -85,34 +97,45 @@ int main(void)
 	}
 	syslog(LOG_NOTICE, "IFIDS_Daemon started successfully. Switching to own log file\n");
 	closelog(); // Close syslog because now we have our own log file
-	fprintf(logFile, "IFIDS_Daemon was started...\n");
+	writeLog("IFIDS_Daemon was started...\n");
 	sid = setsid(); // Get session id
 	if (sid < 0) // If session id doesn't work
 	{
-		fprintf(logFile, "There was an error setting the session id\n");
+		writeLog("There was an error setting the session id\n");
 		exit(EXIT_FAILURE);
 	}
 	if (chdir("/") < 0) // Change directory to /
 	{
-		fprintf(logFile, "Could not switch to root location\n");
+		writeLog("Could not switch to root location\n");
 		exit(EXIT_FAILURE);
 	}
+#ifndef NO_DAEMON
 	// Because we are child process, close STD[IN|OUT|ERR]
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-	// Is it flushing?
-	fprintf(logFile, "IFIDS_Daemon entering serice loop successfully.\n");
-	fflush(logFile);
+#endif
+	writeLog("IFIDS_Daemon entering serice loop successfully.\n");
 	while (1)
 	{
-		// This is where all the code will go for our daemon
-		sleep(60);
-		break;
+		// This is where all our code will go
+		sleep(1);
 	}
 	// Complete log file
-	fprintf(logFile, "Program completed successfully\n");
+	writeLog("Program completed successfully\n");
 	fclose(logFile);
 	exit(EXIT_SUCCESS);
 }
 
+
+
+
+void writeLog(char * str)
+{
+#ifdef NO_DAEMON
+	printf(str);
+#else
+	if (logFile != NULL)
+		fprintf(logFile,str);
+#endif
+}
