@@ -76,7 +76,7 @@ int main(void)
 	if (pid > 0) // If process is parent
 	{
 		// Write pid file saying where the child is
-		logFile = fopen("/var/log/ifids/ifids_daemon.pid","w");
+		logFile = fopen("/var/run/ifids_daemon.pid","w");
 		fprintf(logFile, "%jd",(intmax_t)pid);
 		fclose(logFile);
 		printf("Stopping parent process...\n");

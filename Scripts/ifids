@@ -1,0 +1,135 @@
+#!/bin/bash
+#
+#
+# Author: Chris King, Michael Davis, Sam Doerr
+#
+# chkconfig: 2345 13 87
+# description: IFIDS is an Intranet Firewall and Intrusion Detection \
+# 	       System, which is quick to install, easy to customize, and very scalable
+#
+#
+#
+#
+
+
+
+DAEMON="/usr/lib/ifids/ifids_daemon"
+NAME="ifids_daemon"
+PIDFILE="/var/run/$NAME.pid"
+LOCKFILE="/var/lock/$NAME"
+
+if [ $EUID -ne 0 ]
+then
+	echo "   Error: Must be run as root"
+	exit 1
+fi
+
+do_start()
+{
+	echo -n "   Starting IFIDS: "
+	if [ -a $PIDFILE ]
+	then
+		echo "[ Already running.  PID: `cat $PIDFILE` ]"
+		exit 1;
+	fi
+	if [ -a $DAEMON ]
+	then
+		$DAEMON &> /dev/null
+		if [ $? == 0 ]
+		then
+			echo "[ Success ]"
+			touch $LOCKFILE
+		else
+			echo "[ Fail ]"
+		fi
+	else
+		echo "[ No IFIDS Daemon found. Is it installed? ]"
+	fi
+}
+
+do_stop()
+{
+	echo -n "   Stopping IFIDS: "
+	if [ -a $PIDFILE ]
+	then
+		PID=`cat $PIDFILE`
+		if ps $PID | grep ifids &> /dev/null
+		then
+			kill $PID
+			if [ $? == 0 ]
+			then
+				echo "[ Success ]"
+				rm -f $PIDFILE
+				rm -f $LOCKFILE
+			else
+				echo "[ Fail] "
+			fi
+		else
+			rm -f $PIDFILE
+			rm -f $LOCKFILE
+			echo "[ Not running ]"
+		fi
+	else
+		PID=`ps aux | grep -v grep | grep $DAEMON | awk '{print $2}'`
+		if [[ $PID -ne "" ]]
+		then
+			kill $PID
+			if [ $? == 0 ]
+			then
+				echo "[ Success ]"
+				rm -f $LOCKFILE
+			else
+				echo "[ Fail ]"
+			fi
+		else
+			rm -f $LOCKFILE
+			echo "[ Not running ]"
+		fi
+	fi
+	
+	if lsmod | grep ifids &> /dev/null
+	then
+		rmmod ifids_module;
+		if [ $? != 0 ]
+		then
+			echo "[ Failed to remove module ]"
+		fi
+	fi
+}
+
+
+case "$1" in
+	start)
+		do_start
+		;;
+	stop)
+		do_stop
+		;;
+	restart)
+		do_stop
+		do_start
+		;;
+	*)
+		echo "   Usage: {start|stop|restart}"
+		exit 1
+		;;
+esac
+exit $?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
