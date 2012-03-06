@@ -1,18 +1,21 @@
---------------------------------------------------------------------------------------------
-|                                                                                          |
-|                     Intranet Firewall and Intrusion Detection System                     |
-|                                                                                          |
---------------------------------------------------------------------------------------------
 
-Source Control:
-	- GitHub: https://github.com/Raikia/IFIDS
 
-Contributers:
-	- Chris King
-	- Michael Davis
-	- Sam Doerr
+                   Intranet Firewall and Intrusion Detection System
+                   ================================================
 
-Abstract:
+
+About
+-----
+
+### Source Control:
+	* GitHub: https://github.com/Raikia/IFIDS
+
+### Contributers:
+	* Chris King
+	* Michael Davis
+	* Sam Doerr
+
+### Abstract:
 
 	The goal of IFIDS is to provide a simple, scalable, and highly customizable
 	solution for a firewall and intrusion detection system inside a network.  In
@@ -23,7 +26,7 @@ Abstract:
 	alternative that is quick to install, quick and intuitive to customize, and
 	still provides the same security.
 
-Function:
+### Function:
 
 	IFIDS is designed to run on a system that separates users, subnets, switches,
 	or routers.  The server running IFIDS must be in a position that requires two
@@ -33,7 +36,7 @@ Function:
 	functionality of firewall software (such as IPTables), while simplifying setup
 	and enhancing scalability.
 
-Future:
+### Future:
 
 	Currently, IFIDS runs as a standalone server.  This is not a plausible solution
 	if it is deployed across a large network (each IFIDS instance would require
@@ -41,7 +44,12 @@ Future:
 	allowing each IFIDS instance to query an IFIDS server for its configuration.
 	This will simplify installation and significantly boost scalability.
 
-License:
+
+
+
+
+
+### License:
 
 	Intranet Firwall and Intrusion Detection System (IFIDS)
 	Copyright (C) 2012  Christopher King, Michael Davis, Sam Doerr
@@ -61,5 +69,26 @@ License:
 
 	For more information, contact Christopher King at ccking@smu.edu
 
+
+Installation:
+-------------
+
+	make
+	sudo make install
+
+Usage:
+------
+
+Depending on the Linux distribution, one of the following commands should work:
+
+	sudo service ifids start
+
+	sudo /etc/init.d/ifids start
+
+	sudo /etc/rc.d/ifids start
+
+If none of the above work, execute:
+
+	sudo ./Scripts/ifids start
 
 
