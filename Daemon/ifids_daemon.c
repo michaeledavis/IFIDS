@@ -1,6 +1,11 @@
 // #define NO_DAEMON
 
 #define MOD_NAME "ifids_module"
+#define LOGFILE "/var/log/ifids/ifids_daemon.log"
+#define PIDFILE "/var/run/ifids_daemon.pid"
+#define MODULES_LIST "/proc/modules"
+#define MODULE_LOCATION "/usr/sbin/ifids/ifids_module.ko"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +29,7 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 	// Check to see if module is already loaded:
-	FILE *modList = fopen("/proc/modules","r");
+	FILE *modList = fopen(MODULES_LIST,"r");
 	if (modList == NULL)
 	{
 		printf("              Error: Could not get list of active modules.\n");
@@ -46,7 +51,7 @@ int main(void)
 	if (found == 0)
 	{
 		printf("              Module was not found.  Adding module...\n");
-		int ret = system("insmod /usr/lib/ifids/ifids_module.ko");
+		int ret = system("insmod " MODULE_LOCATION);
 		if (ret == 0)
 		{
 			printf("             Module was successfully loaded\n");
@@ -60,9 +65,7 @@ int main(void)
 	else
 	{
 		printf("              Module is already loaded\n");
-		writeLog("testing\n");
 	}
-	writeLog("test\n");
 	// End check to see if module is already loaded.  It is now loaded.
 	pid_t sid;
 #ifndef NO_DAEMON
@@ -76,7 +79,7 @@ int main(void)
 	if (pid > 0) // If process is parent
 	{
 		// Write pid file saying where the child is
-		logFile = fopen("/var/run/ifids_daemon.pid","w");
+		logFile = fopen(PIDFILE,"w");
 		fprintf(logFile, "%jd",(intmax_t)pid);
 		fclose(logFile);
 		printf("Stopping parent process...\n");
@@ -88,7 +91,7 @@ int main(void)
 	// Open syslog in case we have trouble with our own log file
 	openlog ("IFIDS_Daemon", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 	syslog(LOG_NOTICE, "IFIDS_Daemon was started...\n");
-	logFile = fopen("/var/log/ifids/ifids_daemon.log","a");
+	logFile = fopen(LOGFILE,"a");
 	if (logFile == NULL) // Can't edit log file
 	{
 		syslog(LOG_NOTICE, "IFIDS_Daemon was unable to open its own log file...exiting.\n");
@@ -136,6 +139,9 @@ void writeLog(char * str)
 	puts(str);
 #else
 	if (logFile != NULL)
+	{
 		fputs(str,logFile);
+		fflush(logFile);
+	}
 #endif
 }

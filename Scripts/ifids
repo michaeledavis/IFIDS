@@ -13,7 +13,7 @@
 
 
 
-DAEMON="/usr/lib/ifids/ifids_daemon"
+DAEMON="/usr/sbin/ifids/ifids_daemon"
 NAME="ifids_daemon"
 PIDFILE="/var/run/$NAME.pid"
 LOCKFILE="/var/lock/$NAME"

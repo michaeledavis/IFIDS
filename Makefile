@@ -16,8 +16,8 @@ BIN_MODULE_LOCATION := ./Module/
 BIN_SCRIPT_LOCATION := ./Scripts/
 
 # Install locations
-DAEMON_LOCATION := /usr/lib/ifids/
-MODULE_LOCATION := /usr/lib/ifids/
+DAEMON_LOCATION := /usr/sbin/ifids/
+MODULE_LOCATION := /usr/sbin/ifids/
 # Keep the following blank!
 SCRIPT_LOCATION := 
 
@@ -35,11 +35,19 @@ endif
 
 
 all:
+	@if [ $$EUID = 0 ]; then \
+		echo "   Error: Must NOT be run as root"; \
+		exit 1; \
+	fi
 	@echo "Making IFIDS Components"
 	@cd $(BIN_DAEMON_LOCATION); make
 	@cd $(BIN_MODULE_LOCATION); make
 	@echo "IFIDS Components Built"
 install:
+	@if [ $$EUID != 0 ]; then \
+		echo "   Error: Must be run as root"; \
+		exit 1; \
+	fi
 	@echo "Installing IFIDS Components"
 	@if [ ! -d "$(MODULE_LOCATION)" ]; then \
 		echo "   MK	$(MODULE_LOCATION)"; \
@@ -63,6 +71,10 @@ install:
 	@echo "   MK	$(LOG_LOCATION)"
 	@echo "IFIDS Installed."
 uninstall:
+	@if [ $$EUID != 0 ]; then \
+		echo "   Error: Must be run as root"; \
+		exit 1; \
+	fi
 	@echo "Uninstalling IFIDS Components"
 	@echo "   STOP	$(BIN_SCRIPT_LOCATION)$(SCRIPT)"
 	@$(BIN_SCRIPT_LOCATION)$(SCRIPT) stop > /dev/null
