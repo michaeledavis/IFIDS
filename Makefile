@@ -42,9 +42,11 @@ all:
 install:
 	@echo "Installing IFIDS Components"
 	@if [ ! -d "$(MODULE_LOCATION)" ]; then \
+		echo "   MK	$(MODULE_LOCATION)"; \
 		mkdir -p $(MODULE_LOCATION); \
 	fi
 	@if [ ! -d "$(DAEMON_LOCATION)" ]; then \
+		echo "   MK	$(MODULE_LOCATION)"; \
 		mkdir -p $(DAEMON_LOCATION); \
 	fi
 	@cp $(BIN_DAEMON_LOCATION)$(DAEMON) $(DAEMON_LOCATION)$(PUT_DAEMON)
@@ -70,8 +72,18 @@ uninstall:
 	@rm -f $(MODULE_LOCATION)$(PUT_MODULE)
 	@echo "   RM	$(LOG_LOCATION)"
 	@rm -rf $(LOG_LOCATION)
-	@echo "   RM	Service Script"
+	@if rmdir $(DAEMON_LOCATION) &> /dev/null; \
+	then \
+		echo "   RM	$(DAEMON_LOCATION)"; \
+	fi
+	@if [ -d $(MODULE_LOCATION) ]; then \
+		if rmdir $(MODULE_LOCATION) &> /dev/null; \
+		then \
+			echo "   RM	$(MODULE_LOCATION)"; \
+		fi \
+	fi
 	@if [ "$(SCRIPT_LOCATION)" != "" ]; then \
+		echo "   RM	$(SCRIPT_LOCATION)$(PUT_SCRIPT)"; \
 		rm -f $(SCRIPT_LOCATION)$(PUT_SCRIPT); \
 	else \
 		echo "   Warning: Couldn't remove service script.  Manually remove \"$(PUT_SCRIPT)\""; \
