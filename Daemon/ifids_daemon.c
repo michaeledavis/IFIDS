@@ -36,7 +36,7 @@
 #include <unistd.h> // Needed for STD[IN|OUT|ERR]_FILENO
 #include <sys/stat.h> // Needed for umask
 #include <inttypes.h> // Needed for (intmax_t), which is used in one place...
-
+#include "../libConfuse/src/confuse.h"
 FILE *logFile;
 
 
