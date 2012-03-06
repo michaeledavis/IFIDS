@@ -1,7 +1,7 @@
 
 
--> Intranet Firewall and Intrusion Detection System <-
-   ================================================
+Intranet Firewall and Intrusion Detection System
+================================================
 
 
 About
