@@ -32,7 +32,7 @@
 DAEMON="/usr/sbin/ifids/ifids_daemon"
 NAME="ifids_daemon"
 PIDFILE="/var/run/$NAME.pid"
-LOCKFILE="/var/lock/$NAME"
+LOCKFILE="/var/lock/$NAME.lock"
 
 if [ $EUID -ne 0 ]
 then
