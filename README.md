@@ -44,11 +44,6 @@ configuration).  In the future, we plan to implement a client-server architectur
 allowing each IFIDS instance to query an IFIDS server for its configuration.
 This will simplify installation and significantly boost scalability.
 
-
-
-
-
-
 ### License:
 
 Intranet Firwall and Intrusion Detection System (IFIDS)
@@ -73,6 +68,8 @@ For more information, contact Christopher King at ccking@smu.edu
 Installation:
 -------------
 
+This compiles and installs the program onto your system
+
 	make
 	sudo make install
 
@@ -90,5 +87,20 @@ Depending on the Linux distribution, one of the following commands should work:
 If none of the above work, execute:
 
 	sudo ./Scripts/ifids start
+
+Uninstall:
+----------
+
+This removes all traces of IFIDS from your system
+
+	sudo make uninstall
+
+Clean:
+------
+
+This removes the compiled binaries from their built locations, but does not
+uninstall anything from your system
+
+	make clean
 
 
