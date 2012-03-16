@@ -24,9 +24,6 @@ SCRIPT_LOCATION :=
 # Log location
 LOG_LOCATION := /var/log/ifids/
 
-# LibConfuse location
-LIBCONFUSE_LOCATION = ./libConfuse/
-
 # Determines correct path for SCRIPT_LOCATION
 ifeq ($(shell test -d /etc/init.d/ && echo true),true)
 	SCRIPT_LOCATION := /etc/init.d/
@@ -42,8 +39,6 @@ all:
 		echo "   Error: Must NOT be run as root"; \
 		exit 1; \
 	fi
-	@echo "Making libConfuse..."
-	@cd $(LIBCONFUSE_LOCATION); ./configure; make
 	@echo "Making IFIDS Components"
 	@cd $(BIN_DAEMON_LOCATION); make
 	@cd $(BIN_MODULE_LOCATION); make
@@ -110,5 +105,4 @@ clean:
 	@echo "Cleaning Components"
 	@cd $(BIN_DAEMON_LOCATION); make clean
 	@cd $(BIN_MODULE_LOCATION); make clean
-	@cd $(LIBCONFUSE_LOCATION); make clean
 	@echo "Clean complete"
