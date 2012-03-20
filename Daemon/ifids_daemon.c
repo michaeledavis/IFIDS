@@ -73,7 +73,7 @@ int main(void)
 	free(mods);
 	if (found == 0)
 	{
-		printf("              Module was not found.  Adding module...\n");
+		printf("             Module was not found.  Adding module...\n");
 		int ret = system("insmod " MODULE_LOCATION);
 		if (ret == 0)
 		{
@@ -93,10 +93,10 @@ int main(void)
 	printf("  Parsing Configuration File:  ");
 	int lineError = 0;
 	configuration* config = parseConfigFile(CONFIG_LOCATION,&lineError);
-	if (config == NULL)
+	if (config == NULL || lineError != 0)
 	{
 		printf("FAILED\n");
-		printf("  LINE %d of configuration file (%s)",lineError,CONFIG_LOCATION);
+		printf("Error on line %d of configuration file (%s)\n\n",lineError,CONFIG_LOCATION);
 		exit(EXIT_FAILURE);
 	}
 	else
