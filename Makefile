@@ -4,20 +4,25 @@ SHELL := /bin/bash
 SCRIPT := ifids
 DAEMON := ifids_daemon
 MODULE := ifids_module.ko
+CONFIG := ifids.conf
 
 # Names of binaries/scripts after install
 PUT_SCRIPT = $(SCRIPT)
 PUT_DAEMON = $(DAEMON)
 PUT_MODULE = $(MODULE)
+PUT_CONFIG = $(CONFIG)
 
 # Binary locations
 BIN_DAEMON_LOCATION := ./Daemon/
 BIN_MODULE_LOCATION := ./Module/
 BIN_SCRIPT_LOCATION := ./Scripts/
+BIN_CONFIG_LOCATION := ./Config/
 
 # Install locations
 DAEMON_LOCATION := /usr/sbin/ifids/
 MODULE_LOCATION := /usr/sbin/ifids/
+CONFIG_LOCATION := /etc/
+
 # Keep the following blank!
 SCRIPT_LOCATION := 
 
@@ -61,6 +66,8 @@ install:
 	@echo "   CP	$(BIN_DAEMON_LOCATION)$(DAEMON) $(DAEMON_LOCATION)$(PUT_DAEMON)"
 	@cp $(BIN_MODULE_LOCATION)$(MODULE) $(MODULE_LOCATION)$(PUT_MODULE)
 	@echo "   CP	$(BIN_MODULE_LOCATION)$(MODULE) $(MODULE_LOCATION)$(PUT_MODULE)"
+	@cp $(BIN_CONFIG_LOCATION)$(CONFIG) $(CONFIG_LOCATION)$(PUT_CONFIG)
+	@echo "   CP	$(BIN_CONFIG_LOCATION)$(CONFIG) $(CONFIG_LOCATION)$(PUT_CONFIG)"
 	@if [ "$(SCRIPT_LOCATION)" != "" ]; then \
 		cp $(BIN_SCRIPT_LOCATION)$(SCRIPT) $(SCRIPT_LOCATION)$(PUT_SCRIPT); \
 		echo "   CP	$(BIN_SCRIPT_LOCATION)$(SCRIPT) $(SCRIPT_LOCATION)$(PUT_SCRIPT)"; \
@@ -84,6 +91,8 @@ uninstall:
 	@rm -f $(MODULE_LOCATION)$(PUT_MODULE)
 	@echo "   RM	$(LOG_LOCATION)"
 	@rm -rf $(LOG_LOCATION)
+	@echo "   RM	$(CONFIG_LOCATION)$(PUT_CONFIG)"
+	@rm -f $(CONFIG_LOCATION)$(PUT_CONFIG)
 	@if rmdir $(DAEMON_LOCATION) &> /dev/null; \
 	then \
 		echo "   RM	$(DAEMON_LOCATION)"; \

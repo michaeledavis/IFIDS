@@ -27,6 +27,7 @@
 #define PIDFILE "/var/run/ifids_daemon.pid"
 #define MODULES_LIST "/proc/modules"
 #define MODULE_LOCATION "/usr/sbin/ifids/ifids_module.ko"
+#define CONFIG_LOCATION "/etc/ifids.conf"
 
 
 #include <stdio.h>
@@ -36,6 +37,7 @@
 #include <unistd.h> // Needed for STD[IN|OUT|ERR]_FILENO
 #include <sys/stat.h> // Needed for umask
 #include <inttypes.h> // Needed for (intmax_t), which is used in one place...
+#include "../Config/Config.h"
 FILE *logFile;
 
 
@@ -88,6 +90,18 @@ int main(void)
 		printf("              Module is already loaded\n");
 	}
 	// End check to see if module is already loaded.  It is now loaded.
+	printf("  Parsing Configuration File:  ");
+	int lineError = 0;
+	configuration* config = parseConfigFile(CONFIG_LOCATION,&lineError);
+	if (config == NULL)
+	{
+		printf("FAILED\n");
+		printf("  LINE %d of configuration file (%s)",lineError,CONFIG_LOCATION);
+		exit(EXIT_FAILURE);
+	}
+	else
+		printf("SUCCESS\n");
+
 	pid_t sid;
 #ifndef NO_DAEMON
 	pid_t pid;

@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 EXECUTIBLE=ifids_daemon
-SOURCES=ifids_daemon.c 
+SOURCES=ifids_daemon.c ../Config/*.c ../Config/*.h
 
 all:
 	@echo Building IFIDS Daemon
