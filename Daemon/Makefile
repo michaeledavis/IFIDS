@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-Wall -g -O0
 EXECUTIBLE=ifids_daemon
 SOURCES=ifids_daemon.c ../Config/*.c ../Config/*.h
 

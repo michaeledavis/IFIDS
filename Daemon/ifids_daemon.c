@@ -20,7 +20,7 @@
  */
 
 
-// #define NO_DAEMON
+ #define NO_DAEMON
 
 #define MOD_NAME "ifids_module"
 #define LOGFILE "/var/log/ifids/ifids_daemon.log"
@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h> // Needed to handle signal (SIGTERM)
 #include <string.h> // Needed for strtok
 #include <syslog.h> // Needed for syslog interaction
 #include <unistd.h> // Needed for STD[IN|OUT|ERR]_FILENO
@@ -39,10 +40,13 @@
 #include <inttypes.h> // Needed for (intmax_t), which is used in one place...
 #include "../Config/Config.h"
 FILE *logFile;
-
+int keepGoing;
 
 // This should be used to write logs.  If NO_DAEMON is defined, it prints to the console; otherwise to the log file
 void writeLog(char*);
+
+// This is used to handle the terminating signal
+void sigHandler(int);
 
 int main(void)
 {
@@ -121,6 +125,9 @@ int main(void)
 		exit(EXIT_SUCCESS);
 	}
 #endif
+	// Set signal handler for when Daemon is supposed to stop
+	signal(SIGTERM, sigHandler);
+	keepGoing = 1;
 	// Change permissions
 	umask(0);
 	// Open syslog in case we have trouble with our own log file
@@ -154,11 +161,14 @@ int main(void)
 	close(STDERR_FILENO);
 #endif
 	writeLog("IFIDS_Daemon entering serice loop successfully.\n");
-	while (1)
+	while (keepGoing == 1)
 	{
 		// This is where all our code will go
 		sleep(1);
 	}
+	// Free configuration memory
+	freeConfig(config);
+	writeLog("Configuration was freed successfully\n");
 	// Complete log file
 	writeLog("Program completed successfully\n");
 	fclose(logFile);
@@ -179,4 +189,10 @@ void writeLog(char * str)
 		fflush(logFile);
 	}
 #endif
+}
+
+void sigHandler(int t)
+{
+	writeLog("Daemon has received terminating signal.  Getting out of main loop\n");
+	keepGoing = 0;
 }

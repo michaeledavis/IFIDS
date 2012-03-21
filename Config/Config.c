@@ -1,7 +1,4 @@
 #define MATCH(n) strcasecmp(name,n) == 0
-#define STR(n) strdup(n)
-
-
 
 #include "Config.h"
 
@@ -11,12 +8,15 @@ void list_insert(ip_config* ipc, configuration* mainConfig)
 	{
 		mainConfig->ip_list = (Node*)malloc(sizeof(Node));
 		mainConfig->ip_list->data = ipc;
+		mainConfig->ip_list->next = NULL;
+		mainConfig->ip_list->prev = NULL;
 	}
 	else
 	{
 		Node* n = (Node*)malloc(sizeof(Node));
 		n->data = ipc;
 		n->next = mainConfig->ip_list;
+		n->prev = NULL;
 		mainConfig->ip_list->prev = n;
 		mainConfig->ip_list = n;
 	}
@@ -40,7 +40,13 @@ void list_destroy(configuration* mainConfig)
 	while (curNode)
 	{
 		if (curNode->data)
+		{
+			free(curNode->data->ip_spread);
+#define load(a,b,c,d,e,f) f(curNode->data->b)
+			IP_ATTRIBUTES(load)
+#undef load
 			free(curNode->data);
+		}
 		Node *tmp = curNode;
 		curNode = curNode->next;
 		free(tmp);
@@ -55,10 +61,13 @@ static int handler(void* user, const char* section, const char* name, const char
 	if (strcasecmp(section,"general") == 0)
 	{
 		// Keys of general section go here
-		if (MATCH("allow_all_ip"))
+#define load(a,b,c,d,e,f) if (MATCH(a)) config->b = d(value);
+		GENERAL_ATTRIBUTES(load)
+#undef load
+		/*if (MATCH("allow_all_ip"))
 			config->allow_all_ip = STR(value);
 		else if (MATCH("allow_all_port"))
-			config->allow_all_port = STR(value);
+			config->allow_all_port = STR(value);*/
 	}
 	else // Must be IP range?
 	{
@@ -77,24 +86,39 @@ static int handler(void* user, const char* section, const char* name, const char
 			list_insert(configIP,config);
 		}
 		// Set IP range options here
-		if (MATCH("allow_ip"))
+#define load(a,b,c,d,e,f) if (MATCH(a)) configIP->b = d(value);
+		IP_ATTRIBUTES(load)
+#undef load
+		/*if (MATCH("allow_ip"))
 		{
 			configIP->allowip = STR(value);
-		}
-
+		}*/
 	}
 	return 1;
 }
 configuration* parseConfigFile(char* fileLoc,int* errorCode)
 {
 	configuration* mainConfig = (configuration*)malloc(sizeof(configuration));
+	mainConfig->ip_list = NULL;
 	// Set defaults here
-	mainConfig->allow_all_ip = STR("yes");
-	mainConfig->allow_all_port = STR("yes");
+#define load(a,b,c,d,e,f) mainConfig->b = c;
+	//mainConfig->allow_all_ip = STR("yes");
+	//mainConfig->allow_all_port = STR("yes");
+	GENERAL_ATTRIBUTES(load)
+#undef load
 	// End defaults
 	*errorCode = ini_parse(fileLoc, handler, mainConfig);
 	if (*errorCode != 0)
 		return NULL;
 	return mainConfig;
+}
+
+void freeConfig(configuration* conf)
+{
+	list_destroy(conf);
+#define load(a,b,c,d,e,f) f(conf->b);
+	GENERAL_ATTRIBUTES(load)
+#undef load
+	free(conf);
 }
 
