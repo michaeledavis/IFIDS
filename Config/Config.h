@@ -2,7 +2,9 @@
 #define CONFIG_H
 
 #define STR(n) strdup(n)
-#define BOOL(n) (strcasecmp(n,"yes")==0 || strcasecmp(n,"true")==0)?1:0
+	#define YES 1
+	#define NO 0
+#define BOOL(n) (strcasecmp(n,"yes")==0 || strcasecmp(n,"true")==0)?YES:NO
 
 
 #define FREE(n) free(n);
@@ -13,11 +15,11 @@
 //        F("name of settings command", name of struct attribute, "default setting", Preprocessor function to interpret data, type of data, FREE or NOFREE)
 
 #define IP_ATTRIBUTES(F) \
-	F("allow_ip",allowip, "", STR, char*, FREE)
+	F("allow_ip",allowip, NULL, STR, char*, FREE)
 
 #define GENERAL_ATTRIBUTES(F) \
-	F("allow_all_ip",allow_all_ip,"yes", STR, char*, FREE) \
-	F("allow_all_port", allow_all_port,"yes", STR, char*, FREE)
+	F("allow_all_ip",allow_all_ip,YES, BOOL, int, NOFREE) \
+	F("allow_all_port", allow_all_port,NO, BOOL, int, NOFREE)
 
 
 

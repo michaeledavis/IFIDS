@@ -20,7 +20,7 @@
  */
 
 
- #define NO_DAEMON
+// #define NO_DAEMON
 
 #define MOD_NAME "ifids_module"
 #define LOGFILE "/var/log/ifids/ifids_daemon.log"
@@ -55,11 +55,23 @@ int main(void)
 		printf("              Error: You must run this program with root permissions.\n");
 		exit(EXIT_FAILURE);
 	}
+	// Open syslog in case we have trouble with our own log file
+	openlog ("IFIDS_Daemon", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+	syslog(LOG_NOTICE, "IFIDS_Daemon was started...\n");
+	logFile = fopen(LOGFILE,"a");
+	if (logFile == NULL) // Can't edit log file
+	{
+		syslog(LOG_NOTICE, "IFIDS_Daemon was unable to open its own log file...exiting.\n");
+		closelog();
+		exit(EXIT_FAILURE);
+	}
+	syslog(LOG_NOTICE, "IFIDS_Daemon started successfully. Switching to own log file\n");
+	closelog(); // Close syslog because now we have our own log file
 	// Check to see if module is already loaded:
 	FILE *modList = fopen(MODULES_LIST,"r");
 	if (modList == NULL)
 	{
-		printf("              Error: Could not get list of active modules.\n");
+		writeLog("Error: Could not get list of active modules.\n");
 		exit(EXIT_FAILURE);
 	}
 	char *mods = (char*)malloc(sizeof(char)*100);
@@ -77,34 +89,37 @@ int main(void)
 	free(mods);
 	if (found == 0)
 	{
-		printf("             Module was not found.  Adding module...\n");
+		writeLog("Module was not found.  Adding module...\n");
 		int ret = system("insmod " MODULE_LOCATION);
 		if (ret == 0)
 		{
-			printf("             Module was successfully loaded\n");
+			writeLog("Module was successfully loaded\n");
 		}
 		else
 		{
-			printf("             Module could not be successfully loaded.\n");
+			writeLog("Module could not be successfully loaded.\n");
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		printf("              Module is already loaded\n");
+		writeLog("Module is already loaded\n");
 	}
 	// End check to see if module is already loaded.  It is now loaded.
-	printf("  Parsing Configuration File:  ");
+	writeLog("Parsing Configuration File:  ");
 	int lineError = 0;
 	configuration* config = parseConfigFile(CONFIG_LOCATION,&lineError);
 	if (config == NULL || lineError != 0)
 	{
-		printf("FAILED\n");
-		printf("Error on line %d of configuration file (%s)\n\n",lineError,CONFIG_LOCATION);
+		writeLog("FAILED\n");
+		//writeLog("Error on line %d of configuration file (%s)\n\n",lineError,CONFIG_LOCATION);
+		char err[100];
+		sprintf(err, "Error on line %d of configuration file (%s)\n\n",lineError, CONFIG_LOCATION);
+		writeLog(err);
 		exit(EXIT_FAILURE);
 	}
 	else
-		printf("SUCCESS\n");
+		writeLog("SUCCESS\n");
 
 	pid_t sid;
 #ifndef NO_DAEMON
@@ -112,7 +127,7 @@ int main(void)
 	pid = fork(); // Fork child process
 	if (pid < 0) // if fork didn't work
 	{
-		printf("There was an error forking the process\n");
+		writeLog("There was an error forking the process\n");
 		exit(EXIT_FAILURE);
 	}
 	if (pid > 0) // If process is parent
@@ -121,28 +136,18 @@ int main(void)
 		logFile = fopen(PIDFILE,"w");
 		fprintf(logFile, "%jd",(intmax_t)pid);
 		fclose(logFile);
-		printf("Stopping parent process...\n");
+		writeLog("Stopping parent process...\n");
 		exit(EXIT_SUCCESS);
 	}
 #endif
 	// Set signal handler for when Daemon is supposed to stop
 	signal(SIGTERM, sigHandler);
+#ifdef NO_DAEMON
+	signal(SIGINT, sigHandler);
+#endif
 	keepGoing = 1;
 	// Change permissions
 	umask(0);
-	// Open syslog in case we have trouble with our own log file
-	openlog ("IFIDS_Daemon", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-	syslog(LOG_NOTICE, "IFIDS_Daemon was started...\n");
-	logFile = fopen(LOGFILE,"a");
-	if (logFile == NULL) // Can't edit log file
-	{
-		syslog(LOG_NOTICE, "IFIDS_Daemon was unable to open its own log file...exiting.\n");
-		closelog();
-		exit(EXIT_FAILURE);
-	}
-	syslog(LOG_NOTICE, "IFIDS_Daemon started successfully. Switching to own log file\n");
-	closelog(); // Close syslog because now we have our own log file
-	writeLog("IFIDS_Daemon was started...\n");
 	sid = setsid(); // Get session id
 	if (sid < 0) // If session id doesn't work
 	{

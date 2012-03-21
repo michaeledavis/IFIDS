@@ -83,6 +83,9 @@ static int handler(void* user, const char* section, const char* name, const char
 		{
 			configIP = (ip_config*)malloc(sizeof(ip_config));
 			configIP->ip_spread = strdup(section);
+#define load(a,b,c,d,e,f) configIP->b = c;
+			IP_ATTRIBUTES(load)
+#undef load
 			list_insert(configIP,config);
 		}
 		// Set IP range options here
