@@ -19,80 +19,90 @@
  *
  */
 
+// The following macro is used to compare the strings without case sensitivity
 #define MATCH(n) strcasecmp(name,n) == 0
 
 #include "Config.h"
 
+// list_insert puts the ip_config struct (ipc) into the linked list that is located
+// in mainConfig->ip_list (configuration struct).  All IPs are inserted into the
+// front of the list, so later configuration settings take precedence over former.
 void list_insert(ip_config* ipc, configuration* mainConfig)
 {
-	if (!mainConfig->ip_list)
+	if (!mainConfig->ip_list) // If the linked list is non-existant (first IP inserted)
 	{
-		mainConfig->ip_list = (Node*)malloc(sizeof(Node));
-		mainConfig->ip_list->data = ipc;
-		mainConfig->ip_list->next = NULL;
+		mainConfig->ip_list = (Node*)malloc(sizeof(Node)); // Allocate memory for the Node
+		mainConfig->ip_list->data = ipc; // Set the data of the Node to the ip_config struct
+		mainConfig->ip_list->next = NULL; // Set the two location pointers to null
 		mainConfig->ip_list->prev = NULL;
 	}
-	else
+	else // The linked list already has information in it, so add to the head of the list
 	{
-		Node* n = (Node*)malloc(sizeof(Node));
-		n->data = ipc;
-		n->next = mainConfig->ip_list;
-		n->prev = NULL;
-		mainConfig->ip_list->prev = n;
-		mainConfig->ip_list = n;
+		Node* n = (Node*)malloc(sizeof(Node)); // Allocate memory for the new Node
+		n->data = ipc; // Set the data to the ip_config struct
+		n->next = mainConfig->ip_list; // Set the "next" location to the head of the current list
+		n->prev = NULL; // Set the previous location to null, since its going to be at the head of the list
+		mainConfig->ip_list->prev = n; // Set the previous of the current head in the list to our new Node
+		mainConfig->ip_list = n; // Set our new Node to the head of the list
 	}
 }
 
+// list_select searches for, and returns, the ip_config struct for the corresponding IP address that is sent.
+// Currently, the IP is represented by a c-string, which will probably change due to efficiency costs
 ip_config* list_select(char* search, configuration* mainConfig)
 {
-	Node* curNode = mainConfig->ip_list;
+	Node* curNode = mainConfig->ip_list; // Set Node pointer to the head of the list so we can loop through the IPs
 	while (curNode)
 	{
+		// If the current Node's ip_spread is equal to what we are searching for, return the ip_config struct!
 		if (strcmp(curNode->data->ip_spread,search) == 0)
 			return curNode->data;
-		curNode = curNode->next;
+		curNode = curNode->next; // Progress through linked list
 	}
-	return NULL;
+	return NULL; // Didn't find the IP, return NULL
 }
 
+// list_destroy frees up the memory for all the allocations that were made in the linked list.  This is only called
+// by freeConfig, and shouldn't be used otherwise
 void list_destroy(configuration* mainConfig)
 {
-	Node* curNode = mainConfig->ip_list;
+	Node* curNode = mainConfig->ip_list; // Node pointer to loop through linked lit
 	while (curNode)
 	{
-		if (curNode->data)
+		if (curNode->data) // If the data exists (which it should)
 		{
-			free(curNode->data->ip_spread);
+			free(curNode->data->ip_spread); // Free the IP
 #define load(a,b,c,d,e,f) f(curNode->data->b)
-			IP_ATTRIBUTES(load)
+			IP_ATTRIBUTES(load) // Free all the IP attributes
 #undef load
-			free(curNode->data);
+			free(curNode->data); // Free the entire ip_config data
 		}
-		Node *tmp = curNode;
-		curNode = curNode->next;
-		free(tmp);
+		Node *tmp = curNode; // Temporarily save Node location
+		curNode = curNode->next; // Progress curNode to the next location
+		free(tmp); // Free last Node's memory
 	}
-	mainConfig->ip_list = NULL;
+	mainConfig->ip_list = NULL; // Set the linked list HEAD pointer to NULL
 	return;
 }
+
+// handler is called for EVERY key-value pair found in the configuration file.  Look at inih documentation
+// for more details
 static int handler(void* user, const char* section, const char* name, const char* value)
 {
 	configuration* config = (configuration*)user;
-	// GENERAL SECTION
-	if (strcasecmp(section,"general") == 0)
+	if (strcasecmp(section,"general") == 0) // If the current section is "General", these are the general settings
 	{
 		// Keys of general section go here
 #define load(a,b,c,d,e,f) if (MATCH(a)) config->b = d(value);
-		GENERAL_ATTRIBUTES(load)
+		GENERAL_ATTRIBUTES(load) // Search for all the possible general attribute matches.  GENERAL_ATTRIBUTES is defined in Config.h
 #undef load
-		/*if (MATCH("allow_all_ip"))
-			config->allow_all_ip = STR(value);
-		else if (MATCH("allow_all_port"))
-			config->allow_all_port = STR(value);*/
 	}
-	else // Must be IP range?
+	else // If its not in the general section, then it's in an IP section (assume the user isn't stupid)
 	{
 		ip_config* configIP = NULL;
+		// If the configuration exists, if the linked list exists, and if the data exists in the
+		// first Node of the linked list, then we want to see if this key-value pair is apart of the
+		// current HEAD of the list.
 		if (config && config->ip_list && config->ip_list->data && config->ip_list->data->ip_spread)
 		{
 			if (strcasecmp(section, config->ip_list->data->ip_spread) == 0)
