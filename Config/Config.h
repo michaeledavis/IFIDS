@@ -36,7 +36,7 @@
 //        F("name of settings command", name of struct attribute, "default setting", Preprocessor function to interpret data, type of data, FREE or NOFREE)
 
 #define IP_ATTRIBUTES(F) \
-	F("allow_ip",allowip, NULL, STR, char*, FREE)
+	F("allowip",allowip, NULL, STR, char*, FREE)
 
 #define GENERAL_ATTRIBUTES(F) \
 	F("allow_all_ip",allow_all_ip,YES, BOOL, int, NOFREE) \

@@ -120,7 +120,41 @@ int main(void)
 	}
 	else
 		writeLog("SUCCESS\n");
-
+	// Write read configurations into the log files:
+	writeLog("Configuration Settings:\n\n");
+	char* buffer = (char*)malloc(sizeof(char)*100);
+#define BOOLA BOOL
+#define STRA STR
+#undef STR
+#undef BOOL
+#define STR "     %s: %s\n"
+#define BOOL "     %s: %d\n"
+#define load(A,B,C,D,E,F) sprintf(buffer, D,A, config->B); writeLog(buffer);
+	writeLog("   [General]\n");
+	GENERAL_ATTRIBUTES(load)
+#undef load
+	Node* curNode = config->ip_list;
+	while (curNode)
+	{
+		sprintf(buffer, "\n   [%s]\n",curNode->data->ip_spread);
+		writeLog(buffer);
+#define load(A,B,C,D,E,F) sprintf(buffer, D, A, curNode->data->B); writeLog(buffer);
+		IP_ATTRIBUTES(load)
+#undef load
+		writeLog("\n\n");
+		curNode = curNode->next;
+	}
+	free(buffer);
+#define load(A,B,C,D,E,F)
+#undef load
+#undef STR
+#undef BOOL
+#define STR STRA
+#define BOOL BOOLA
+#undef STRA
+#undef BOOLA
+	writeLog("End configuration\n");
+	// End config log write
 	pid_t sid;
 #ifndef NO_DAEMON
 	pid_t pid;
