@@ -28,124 +28,116 @@
 
 
 
-
+# Location of the Daemon binary once installed
 DAEMON="/usr/sbin/ifids/ifids_daemon"
+
+# Name of the Daemon binary
 NAME="ifids_daemon"
+
+# PID File for the Daemon binary
 PIDFILE="/var/run/$NAME.pid"
+
+# Lockfile for the Daemon binary
 LOCKFILE="/var/lock/$NAME.lock"
 
-if [ $EUID -ne 0 ]
+if [ $EUID -ne 0 ] # If the script is not run as root, then exit
 then
 	echo "   Error: Must be run as root"
 	exit 1
 fi
 
+# do_start is the function called when we want to start the daemon
 do_start()
 {
 	echo -n "   Starting IFIDS: "
-	if [ -a $PIDFILE ]
+	if [ -a $PIDFILE ] # If the PID file exists, then it is still running!
 	then
 		echo "[ Already running.  PID: `cat $PIDFILE` ]"
 		exit 1;
 	fi
-	if [ -a $DAEMON ]
+	if [ -a $DAEMON ] # If the daemon binary exists, then we want to try to start it
 	then
-		$DAEMON &> /dev/null
-		if [ $? == 0 ]
+		$DAEMON &> /dev/null # Start the binary but don't print anything to the screen
+		if [ $? == 0 ] # If the return code was 0 (successful), echo it!
 		then
 			echo "[ Success ]"
-			touch $LOCKFILE
-		else
+			touch $LOCKFILE # Create the lockfile for the daemon. The daemon binary makes the PID file
+		else # Otherwise, fail
 			echo "[ Fail ]"
 		fi
-	else
+	else # If the daemon binary wasn't found, then its not installed!
 		echo "[ No IFIDS Daemon found. Is it installed? ]"
 	fi
 }
 
+# do_stop is the function called when we want to stop the daemon
 do_stop()
 {
 	echo -n "   Stopping IFIDS: "
-	if [ -a $PIDFILE ]
+	if [ -a $PIDFILE ] # If the PID file exists, then we want to use it
 	then
-		PID=`cat $PIDFILE`
-		if ps $PID | grep ifids &> /dev/null
+		PID=`cat $PIDFILE` # Read the PID file
+		if ps $PID | grep ifids &> /dev/null # Check to make sure the PID file has true information
 		then
-			kill $PID
-			if [ $? == 0 ]
+			kill $PID # If the daemon was found running, send the SIGTERM signal via "kill"
+			if [ $? == 0 ] # If the return code is sucessful, echo it!
 			then
 				echo "[ Success ]"
-				rm -f $PIDFILE
-				rm -f $LOCKFILE
-			else
-				echo "[ Fail] "
+				rm -f $PIDFILE # Remove the PID file
+				rm -f $LOCKFILE # Remove the lock file
+			else # If we couldn't kill the daemon for some reason, echo "Fail"
+				echo "[ Fail ] "
 			fi
 		else
+			# Even if the process is not running, we want to remove the PID and lock file
 			rm -f $PIDFILE
 			rm -f $LOCKFILE
 			echo "[ Not running ]"
 		fi
-	else
-		PID=`ps aux | grep -v grep | grep $DAEMON | awk '{print $2}'`
-		if [[ $PID -ne "" ]]
+	else # Because there is no PID file, we want to see if the process is running anyway (recovery)
+		PID=`ps aux | grep -v grep | grep $DAEMON | awk '{print $2}'` # Search for the running daemon
+		if [[ $PID -ne "" ]] # If a result was found (only the daemon will return)
 		then
-			kill $PID
-			if [ $? == 0 ]
+			kill $PID # Kill the PID that we found running
+			if [ $? == 0 ] # If it was successful, echo it
 			then
 				echo "[ Success ]"
-				rm -f $LOCKFILE
-			else
+				rm -f $LOCKFILE # Try to remove the lock file if it exists
+			else # If we can't kill it, echo "Fail"
 				echo "[ Fail ]"
 			fi
-		else
-			rm -f $LOCKFILE
+		else # If the running process was not found at all, then its not running
+			rm -f $LOCKFILE # Try to remove the lock file....why not.  It might be there
 			echo "[ Not running ]"
 		fi
 	fi
 	
-	if lsmod | grep ifids &> /dev/null
+	if lsmod | grep ifids &> /dev/null # If the module is loaded into the kernel
 	then
-		rmmod ifids_module;
-		if [ $? != 0 ]
+		rmmod ifids_module; # Remove the module from the kernel
+		if [ $? != 0 ] # If it wasn't successful, display the error
 		then
 			echo "[ Failed to remove module ]"
 		fi
 	fi
 }
 
-
+# Switch statement to determine what to do based on command line arguments
 case "$1" in
-	start)
+	start) # If "start" was sent, execute the do_start function
 		do_start
 		;;
-	stop)
+	stop) # If "stop" was sent, execute the do_stop function
 		do_stop
 		;;
-	restart)
+	restart) # If "restart" was sent, execute both the do_stop then the do_start function
 		do_stop
 		do_start
-		;;
-	*)
+		;; 
+	*) # If something else was sent, display the usage information
 		echo "   Usage: {start|stop|restart}"
 		exit 1
 		;;
 esac
 exit $?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
