@@ -105,54 +105,52 @@ static int handler(void* user, const char* section, const char* name, const char
 		// current HEAD of the list.
 		if (config && config->ip_list && config->ip_list->data && config->ip_list->data->ip_spread)
 		{
+			// If the HEAD of the list is the IP section we are currently in, we want to edit its attribute
 			if (strcasecmp(section, config->ip_list->data->ip_spread) == 0)
 			{
 				configIP = config->ip_list->data;
 			}
 		}
+		// If the IP section isn't at the HEAD of the linked list, insert it!
 		if (!configIP)
 		{
-			configIP = (ip_config*)malloc(sizeof(ip_config));
-			configIP->ip_spread = strdup(section);
+			configIP = (ip_config*)malloc(sizeof(ip_config)); // Allocate the new ip_config struct
+			configIP->ip_spread = strdup(section); // Set the IP attribute of the struct
 #define load(a,b,c,d,e,f) configIP->b = c;
-			IP_ATTRIBUTES(load)
+			IP_ATTRIBUTES(load) // Initialize all the IP_ATTRIBUTES of the struct to their defaults
 #undef load
-			list_insert(configIP,config);
+			list_insert(configIP,config); // Add the struct to the HEAD of the list
 		}
 		// Set IP range options here
 #define load(a,b,c,d,e,f) if (MATCH(a)) configIP->b = d(value);
-		IP_ATTRIBUTES(load)
+		IP_ATTRIBUTES(load) // Set the attribute that corresponds to the key-value pair in the config file
 #undef load
-		/*if (MATCH("allow_ip"))
-		{
-			configIP->allowip = STR(value);
-		}*/
 	}
-	return 1;
+	return 1; // Return no error
 }
+
+// parseConfigFile takes the file location and an errorCode int pointer, and returns a "configuration" struct pointer
 configuration* parseConfigFile(char* fileLoc,int* errorCode)
 {
+	// Allocate the configuration struct that we will populate with all the config settings
 	configuration* mainConfig = (configuration*)malloc(sizeof(configuration));
-	mainConfig->ip_list = NULL;
-	// Set defaults here
+	mainConfig->ip_list = NULL; // Pre-set the ip_list pointer to NULL
 #define load(a,b,c,d,e,f) mainConfig->b = c;
-	//mainConfig->allow_all_ip = STR("yes");
-	//mainConfig->allow_all_port = STR("yes");
-	GENERAL_ATTRIBUTES(load)
+	GENERAL_ATTRIBUTES(load) // Load the general attributes and initialize them to their defaults
 #undef load
-	// End defaults
-	*errorCode = ini_parse(fileLoc, handler, mainConfig);
-	if (*errorCode != 0)
+	*errorCode = ini_parse(fileLoc, handler, mainConfig); // Call inih library to parse the configuration file
+	if (*errorCode != 0) // If there was any error, we want to return NULL and die since the inih library does not
 		return NULL;
 	return mainConfig;
 }
 
+// freeConfig acts like the destructor for configuration structs.  It frees up all the allocated memory
 void freeConfig(configuration* conf)
 {
-	list_destroy(conf);
+	list_destroy(conf); // Free the ip linked list memory
 #define load(a,b,c,d,e,f) f(conf->b);
-	GENERAL_ATTRIBUTES(load)
+	GENERAL_ATTRIBUTES(load) // Free the general attributes of the struct based on FREE or NOFREE macros
 #undef load
-	free(conf);
+	free(conf); // Free the configuration struct itself
 }
 
