@@ -22,6 +22,12 @@
 // The following macro is used to compare the strings without case sensitivity
 #define MATCH(n) strcasecmp(name,n) == 0
 
+#ifdef __KERNEL__
+	#define ALLOC(n) vmalloc(n)
+#else
+	#define ALLOC(n) malloc(n)
+#endif
+
 #include "Config.h"
 
 // list_insert puts the ip_config struct (ipc) into the linked list that is located
@@ -31,14 +37,14 @@ void list_insert(ip_config* ipc, configuration* mainConfig)
 {
 	if (!mainConfig->ip_list) // If the linked list is non-existant (first IP inserted)
 	{
-		mainConfig->ip_list = (Node*)malloc(sizeof(Node)); // Allocate memory for the Node
+		mainConfig->ip_list = (Node*)ALLOC(sizeof(Node)); // Allocate memory for the Node
 		mainConfig->ip_list->data = ipc; // Set the data of the Node to the ip_config struct
 		mainConfig->ip_list->next = NULL; // Set the two location pointers to null
 		mainConfig->ip_list->prev = NULL;
 	}
 	else // The linked list already has information in it, so add to the head of the list
 	{
-		Node* n = (Node*)malloc(sizeof(Node)); // Allocate memory for the new Node
+		Node* n = (Node*)ALLOC(sizeof(Node)); // Allocate memory for the new Node
 		n->data = ipc; // Set the data to the ip_config struct
 		n->next = mainConfig->ip_list; // Set the "next" location to the head of the current list
 		n->prev = NULL; // Set the previous location to null, since its going to be at the head of the list
@@ -67,24 +73,26 @@ ip_config* list_select(char* search, configuration* mainConfig)
 void list_destroy(configuration* mainConfig)
 {
 	Node* curNode = mainConfig->ip_list; // Node pointer to loop through linked lit
+	Node* tmp = NULL;
 	while (curNode)
 	{
 		if (curNode->data) // If the data exists (which it should)
 		{
-			free(curNode->data->ip_spread); // Free the IP
+			FREE(curNode->data->ip_spread); // Free the IP
 #define load(a,b,c,d,e,f) f(curNode->data->b)
 			IP_ATTRIBUTES(load) // Free all the IP attributes
 #undef load
-			free(curNode->data); // Free the entire ip_config data
+			FREE(curNode->data); // Free the entire ip_config data
 		}
-		Node *tmp = curNode; // Temporarily save Node location
+		tmp = curNode; // Temporarily save Node location
 		curNode = curNode->next; // Progress curNode to the next location
-		free(tmp); // Free last Node's memory
+		FREE(tmp); // Free last Node's memory
 	}
 	mainConfig->ip_list = NULL; // Set the linked list HEAD pointer to NULL
 	return;
 }
 
+#ifndef __KERNEL__
 // handler is called for EVERY key-value pair found in the configuration file.  Look at inih documentation
 // for more details
 static int handler(void* user, const char* section, const char* name, const char* value)
@@ -128,7 +136,6 @@ static int handler(void* user, const char* section, const char* name, const char
 	}
 	return 1; // Return no error
 }
-
 // parseConfigFile takes the file location and an errorCode int pointer, and returns a "configuration" struct pointer
 configuration* parseConfigFile(char* fileLoc,int* errorCode)
 {
@@ -143,7 +150,7 @@ configuration* parseConfigFile(char* fileLoc,int* errorCode)
 		return NULL;
 	return mainConfig;
 }
-
+#endif
 // freeConfig acts like the destructor for configuration structs.  It frees up all the allocated memory
 void freeConfig(configuration* conf)
 {
@@ -151,6 +158,6 @@ void freeConfig(configuration* conf)
 #define load(a,b,c,d,e,f) f(conf->b);
 	GENERAL_ATTRIBUTES(load) // Free the general attributes of the struct based on FREE or NOFREE macros
 #undef load
-	free(conf); // Free the configuration struct itself
+	FREE(conf); // Free the configuration struct itself
 }
 

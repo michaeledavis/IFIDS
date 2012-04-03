@@ -106,4 +106,4 @@ static void __exit cleanup(void)
 
 module_init(init_this); // Tell the kernel to execute init_this function when module starts
 module_exit(cleanup); // Tell the kernel to execute cleanup function when module exits
-
+MODULE_LICENSE("GPL v3");

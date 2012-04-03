@@ -29,7 +29,12 @@
 #define BOOL(n) (strcasecmp(n,"yes")==0 || strcasecmp(n,"true")==0)?YES:NO
 
 // Define whether the attribute should be freed or not
-#define FREE(n) free(n);
+#ifdef __KERNEL__
+	#define FREE(n) vfree(n);
+#else
+	#define FREE(n) free(n);
+#endif
+
 #define NOFREE(n) 
 
 
@@ -46,11 +51,14 @@
 	F("allow_all_port", allow_all_port,NO, BOOL, int, NOFREE)
 
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ini.h"
+#ifndef __KERNEL__
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include "ini.h"
+#else
+	#include <linux/vmalloc.h>
+#endif
 
 // Typedefs are so we don't have to repeatedly type "struct Node" instead of just "Node"
 typedef struct Node Node;
@@ -97,12 +105,12 @@ ip_config* list_select(char*,configuration*);
 // list_destroy should ONLY be used in freeConfig to free the linked list from memory.  This might be
 // taken out of the header file in the future, since there is no reason to have it in here
 void list_destroy(configuration*);
-
+#ifndef __KERNEL__
 // parseConfigFile takes the file location as a c-string, and an errorcode integer pointer and parses
 // the supplied configuration file, returning a pointer to a configuration struct and setting the 
 // errorcode integer to the correct corresponding value (0 if no error, !=0 if error)
 configuration* parseConfigFile(char*,int*);
-
+#endif
 // freeConfig frees all the memory for the entire configuration struct, including the ip linked list
 void freeConfig(configuration*);
 
